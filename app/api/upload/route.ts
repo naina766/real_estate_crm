@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { successResponse, errorResponse, handleApiError, getUserFromRequest } from "@/lib/api";
 
-export const config = { api: { bodyParser: false } };
+// export const config = { api: { bodyParser: false } };
 
 export async function POST(req: NextRequest) {
   try {

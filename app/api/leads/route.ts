@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-webhook-secret": process.env.WEBHOOK_SECRET!
         },
         body: JSON.stringify({
           name: lead.name,
