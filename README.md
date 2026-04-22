@@ -21,7 +21,8 @@ A full-stack Real Estate CRM built with **Next.js 14**, **Prisma ORM**, **Postgr
 
 ## 📸 Screenshots
 
-> Add screenshots here (Dashboard, Leads, Deals, Properties)
+<img width="959" height="439" alt="image" src="https://github.com/user-attachments/assets/34025dbe-35b9-4aa5-a461-912262c092d7" />
+
 
 ---
 
