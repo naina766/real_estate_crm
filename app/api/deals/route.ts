@@ -36,7 +36,6 @@ export async function GET(req: NextRequest) {
       }),
       prisma.deal.count({ where }),
     ]);
-
     return paginatedResponse(deals, total, page, limit);
   } catch (error) {
     return handleApiError(error);
@@ -67,7 +66,24 @@ export async function POST(req: NextRequest) {
         agent: { select: { id: true, name: true } },
       },
     });
-
+// 🔥 n8n webhook (ADD THIS HERE)
+try {
+  await fetch("https://agnayi2026.app.n8n.cloud/webhook/deal-create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: deal.title,
+      amount: deal.amount,
+      stage: deal.stage,
+      clientName: deal.client?.name,
+      propertyTitle: deal.property?.title,
+    }),
+  });
+} catch (err) {
+  console.error("n8n deal webhook failed:", err);
+}
     await prisma.activity.create({
       data: {
         type: "NOTE",

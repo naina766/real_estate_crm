@@ -106,6 +106,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
+     try {
+      await fetch("https://agnayi2026.app.n8n.cloud/webhook/lead-create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: lead.name,
+          email: lead.email,
+          phone: lead.phone,
+          budget: lead.budget,
+        }),
+      });
+    } catch (err) {
+      console.error("n8n webhook failed:", err);
+    }
     // Activity log
     await prisma.activity.create({
       data: {

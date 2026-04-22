@@ -97,7 +97,22 @@ export async function POST(req: NextRequest) {
         agent: { select: { id: true, name: true, email: true } },
       },
     });
-
+try {
+  await fetch("https://agnayi2026.app.n8n.cloud/webhook/property-create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: property.title,
+      price: property.price,
+      city: property.city,
+      type: property.type,
+    }),
+  });
+} catch (err) {
+  console.error("n8n property webhook failed:", err);
+}
     await prisma.auditLog.create({
       data: {
         action: "CREATE",
