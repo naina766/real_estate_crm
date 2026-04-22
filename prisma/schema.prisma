@@ -1,0 +1,410 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  MANAGER
+  AGENT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CLOSED
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  PORTAL
+  SOCIAL_MEDIA
+  COLD_CALL
+  WALK_IN
+  API_WEBHOOK
+  OTHER
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+  INDUSTRIAL
+  LAND
+  MIXED_USE
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  UNDER_OFFER
+  SOLD
+  RENTED
+  OFF_MARKET
+}
+
+enum ClientType {
+  BUYER
+  SELLER
+  BOTH
+}
+
+enum DealStage {
+  PROSPECTING
+  NEGOTIATION
+  AGREEMENT
+  DUE_DILIGENCE
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  SMS
+  VISIT
+  NOTE
+  MEETING
+  TASK_COMPLETED
+  STATUS_CHANGE
+  DOCUMENT_UPLOAD
+  DEAL_STAGE_CHANGE
+  LEAD_ASSIGNED
+  FOLLOW_UP
+}
+
+enum NotificationType {
+  LEAD_ASSIGNED
+  FOLLOW_UP_DUE
+  DEAL_STAGE_CHANGE
+  TASK_DUE
+  SYSTEM
+  PROPERTY_INTEREST
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DocumentType {
+  CONTRACT
+  AGREEMENT
+  IDENTITY_PROOF
+  PROPERTY_DEED
+  INSPECTION_REPORT
+  OTHER
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  password        String
+  role            Role      @default(AGENT)
+  phone           String?
+  avatar          String?
+  avatarPublicId  String?
+  isActive        Boolean   @default(true)
+  isApproved      Boolean   @default(false)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  assignedLeads      Lead[]         @relation("AgentLeads")
+  createdLeads       Lead[]         @relation("CreatedLeads")
+  properties         Property[]     @relation("AgentProperties")
+  deals              Deal[]         @relation("AgentDeals")
+  activities         Activity[]
+  notifications      Notification[]
+  tasks              Task[]         @relation("AssignedTasks")
+  createdTasks       Task[]         @relation("CreatedTasks")
+  auditLogs          AuditLog[]
+  managedClients     Client[]
+  refreshTokens      RefreshToken[]
+  followUps          FollowUp[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Lead {
+  id              String     @id @default(cuid())
+  name            String
+  phone           String
+  email           String?
+  budget          Decimal?   @db.Decimal(15, 2)
+  source          LeadSource @default(WEBSITE)
+  status          LeadStatus @default(NEW)
+  notes           String?
+  score           Int        @default(0) // AI lead score 0-100
+  preferences     Json?      // bedrooms, location pref, amenities etc.
+  tags            String[]
+
+  assignedToId    String?
+  assignedTo      User?      @relation("AgentLeads", fields: [assignedToId], references: [id])
+  createdById     String?
+  createdBy       User?      @relation("CreatedLeads", fields: [createdById], references: [id])
+
+  clientId        String?
+  client          Client?    @relation(fields: [clientId], references: [id])
+
+  activities      Activity[]
+  followUps       FollowUp[]
+  notifications   Notification[]
+  deals           Deal[]
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("leads")
+}
+
+model Property {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  type            PropertyType
+  status          PropertyStatus @default(AVAILABLE)
+
+  // Location
+  address         String
+  city            String
+  state           String
+  country         String         @default("India")
+  pincode         String?
+  latitude        Float?
+  longitude       Float?
+
+  // Details
+  price           Decimal        @db.Decimal(15, 2)
+  size            Float?         // sq ft / sq m
+  bedrooms        Int?
+  bathrooms       Int?
+  floors          Int?
+  yearBuilt       Int?
+  amenities       String[]
+  features        Json?          // parking, pool, gym etc.
+
+  // Media
+  images          Document[]     @relation("PropertyImages")
+  thumbnailUrl    String?
+
+  // Relations
+  agentId         String?
+  agent           User?          @relation("AgentProperties", fields: [agentId], references: [id])
+  deals           Deal[]
+  activities      Activity[]
+
+  isFeatured      Boolean        @default(false)
+  viewCount       Int            @default(0)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map("properties")
+}
+
+model Client {
+  id              String     @id @default(cuid())
+  name            String
+  email           String?
+  phone           String
+  type            ClientType @default(BUYER)
+  preferences     Json?      // preferred locations, budget range, property type
+  notes           String?
+  tags            String[]
+
+  agentId         String?
+  agent           User?      @relation(fields: [agentId], references: [id])
+
+  leads           Lead[]
+  deals           Deal[]
+  activities      Activity[]
+  followUps       FollowUp[]
+  documents       Document[] @relation("ClientDocuments")
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@map("clients")
+}
+
+model Deal {
+  id                String    @id @default(cuid())
+  title             String
+  stage             DealStage @default(PROSPECTING)
+  amount            Decimal?  @db.Decimal(15, 2)
+  commissionRate    Float     @default(2.0) // percentage
+  commissionAmount  Decimal?  @db.Decimal(15, 2)
+  expectedCloseDate DateTime?
+  closedAt          DateTime?
+  notes             String?
+
+  // Relations
+  clientId    String
+  client      Client     @relation(fields: [clientId], references: [id])
+  propertyId  String?
+  property    Property?  @relation(fields: [propertyId], references: [id])
+  agentId     String?
+  agent       User?      @relation("AgentDeals", fields: [agentId], references: [id])
+  leadId      String?
+  lead        Lead?      @relation(fields: [leadId], references: [id])
+
+  documents   Document[] @relation("DealDocuments")
+  activities  Activity[]
+  tasks       Task[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("deals")
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  title       String
+  description String?
+  metadata    Json?        // extra data like call duration, email subject etc.
+
+  // Polymorphic relations
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id])
+  leadId      String?
+  lead        Lead?        @relation(fields: [leadId], references: [id])
+  clientId    String?
+  client      Client?      @relation(fields: [clientId], references: [id])
+  dealId      String?
+  deal        Deal?        @relation(fields: [dealId], references: [id])
+  propertyId  String?
+  property    Property?    @relation(fields: [propertyId], references: [id])
+
+  createdAt   DateTime     @default(now())
+
+  @@map("activities")
+}
+
+model FollowUp {
+  id           String   @id @default(cuid())
+  title        String
+  notes        String?
+  scheduledAt  DateTime
+  completedAt  DateTime?
+  isCompleted  Boolean  @default(false)
+  reminderSent Boolean  @default(false)
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  leadId    String?
+  lead      Lead?   @relation(fields: [leadId], references: [id])
+  clientId  String?
+  client    Client? @relation(fields: [clientId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("follow_ups")
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  name        String
+  url         String
+  publicId    String       // Cloudinary public ID
+  mimeType    String?
+  size        Int?         // bytes
+  type        DocumentType @default(OTHER)
+
+  // Polymorphic
+  dealId      String?
+  deal        Deal?     @relation("DealDocuments", fields: [dealId], references: [id])
+  propertyId  String?
+  property    Property? @relation("PropertyImages", fields: [propertyId], references: [id])
+  clientId    String?
+  client      Client?   @relation("ClientDocuments", fields: [clientId], references: [id])
+
+  createdAt   DateTime  @default(now())
+
+  @@map("documents")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadId    String?
+  lead      Lead?  @relation(fields: [leadId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  priority    Int        @default(2) // 1=Low 2=Medium 3=High
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  assignedToId  String?
+  assignedTo    User?   @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdById   String?
+  createdBy     User?   @relation("CreatedTasks", fields: [createdById], references: [id])
+  dealId        String?
+  deal          Deal?   @relation(fields: [dealId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // CREATE, UPDATE, DELETE, LOGIN etc.
+  entity    String   // User, Lead, Property etc.
+  entityId  String?
+  oldData   Json?
+  newData   Json?
+  ipAddress String?
+  userAgent String?
+
+  userId    String?
+  user      User?   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
