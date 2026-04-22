@@ -1,306 +1,229 @@
 # 🏠 RealCRM — Production-Ready Real Estate CRM
 
-A full-stack Real Estate CRM built with **Next.js 14**, **Tailwind CSS**, **Prisma ORM**, **PostgreSQL**, and **Cloudinary** — all in a single Next.js monorepo.
+A full-stack Real Estate CRM built with **Next.js 14**, **Prisma ORM**, **PostgreSQL (Neon DB)**, and **Cloudinary** — designed to manage leads, properties, clients, and deals with automation and analytics.
+
+---
+
+## 🔗 Live Demo
+
+* 🌐 App: https://your-app-url.vercel.app
+* 📦 GitHub: https://github.com/your-username/real-estate-crm
+
+### 🔑 Demo Credentials
+
+| Role    | Email                                             | Password   |
+| ------- | ------------------------------------------------- | ---------- |
+| Admin   | [admin@realcrm.com](mailto:admin@realcrm.com)     | Admin@1234 |
+| Manager | [manager@realcrm.com](mailto:manager@realcrm.com) | Agent@1234 |
+| Agent   | [agent@realcrm.com](mailto:agent@realcrm.com)     | Agent@1234 |
+
+---
+
+## 📸 Screenshots
+
+> Add screenshots here (Dashboard, Leads, Deals, Properties)
 
 ---
 
 ## ✨ Features
 
-| Module | Features |
-|---|---|
-| **Leads** | Capture, assign, score (AI), status pipeline, follow-ups |
-| **Properties** | CRUD listings, image upload, grid/list view, map-ready |
-| **Clients** | Buyer/Seller profiles, interaction history |
-| **Deals** | Kanban pipeline, commission calculation, document upload |
-| **Communications** | Activity timeline, calls/emails/visits logged |
-| **Agents** | Role-based access (Admin/Manager/Agent), performance stats |
-| **Reports** | Live analytics dashboard, revenue charts, export |
-| **Webhooks** | Accept leads from external portals via HMAC-signed webhooks |
-| **AI Scoring** | Rule-based lead scoring 0-100 |
-| **Auth** | JWT access+refresh tokens, cookie-based, RBAC |
+### 📌 Lead Management
+
+* Multi-source lead capture (website, API, webhook)
+* Lead scoring (AI-based)
+* Status tracking (New → Closed)
+* Assignment & follow-ups
+
+### 🏠 Property Management
+
+* Full CRUD for listings
+* Image upload via Cloudinary
+* Advanced filtering & search
+* Map-ready location fields
+
+### 👥 Client Management
+
+* Buyer/Seller profiles
+* Interaction history tracking
+* Linked with leads & deals
+
+### 💼 Deal Management
+
+* Kanban pipeline (drag & drop)
+* Commission calculation
+* Document uploads
+
+### 🔔 Notifications & Activities
+
+* Activity timeline (calls, emails, visits)
+* Follow-up reminders
+* In-app notifications
+
+### 👨‍💼 User & Roles
+
+* Role-based access (Admin, Manager, Agent)
+* Agent performance tracking
+
+### 📊 Reports & Analytics
+
+* Revenue tracking
+* Lead conversion rate
+* Monthly performance charts
+
+---
+
+## 🔗 Automation (Webhook Integration)
+
+This CRM supports automation using webhooks.
+
+Example:
+
+* New Lead → Trigger webhook → Send notification/email
+
+```ts
+await fetch("https://agnayi2026.app.n8n.cloud/webhook/lead-create", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name, email, phone, budget }),
+});
+```
+
+> Note: If shared n8n credentials are inaccessible, webhook integration is still fully implemented in backend.
 
 ---
 
 ## 🏗️ Project Structure
 
 ```
-real-estate-crm/
-├── app/
-│   ├── (auth)/            # Login, Register pages
-│   ├── (dashboard)/       # All protected dashboard pages
-│   │   ├── dashboard/     # Analytics overview
-│   │   ├── leads/         # Lead management + form
-│   │   ├── properties/    # Property listings (grid/list)
-│   │   ├── clients/       # Client directory
-│   │   ├── deals/         # Kanban pipeline
-│   │   ├── communications/# Activity timeline
-│   │   ├── agents/        # Team management
-│   │   └── reports/       # Analytics & charts
-│   └── api/               # All backend API routes
-│       ├── auth/          # register, login, refresh
-│       ├── leads/         # CRUD + assign + AI score
-│       ├── properties/    # CRUD + search
-│       ├── clients/       # CRUD
-│       ├── deals/         # CRUD + pipeline
-│       ├── communications/# Activity log
-│       ├── users/         # User management
-│       ├── notifications/ # In-app notifications
-│       ├── reports/       # Analytics aggregation
-│       ├── upload/        # Cloudinary upload
-│       ├── webhooks/      # External lead capture
-│       └── ai/            # Lead scoring
-├── components/
-│   ├── ui/                # Button, Badge, Input, Select, Card, Avatar...
-│   └── layout/            # Sidebar, Navbar
-├── lib/
-│   ├── prisma.ts          # Prisma singleton
-│   ├── auth.ts            # JWT (jose)
-│   ├── cloudinary.ts      # Cloudinary SDK
-│   ├── api.ts             # API helpers + auth guard HOF
-│   └── validations/       # Zod schemas for all entities
-├── middleware.ts           # JWT route protection
-└── prisma/
-    ├── schema.prisma       # 12-model database schema
-    └── seed.ts             # Demo data seed
+app/
+ ├── (auth)/              # Login/Register
+ ├── (dashboard)/         # Protected dashboard
+ └── api/                 # Backend APIs
+
+lib/
+ ├── prisma.ts            # Prisma client
+ ├── auth.ts              # JWT logic
+ ├── api.ts               # API helpers
+ └── validations/         # Zod schemas
+
+prisma/
+ └── schema.prisma
 ```
 
 ---
 
-## 🚀 Quick Start
+## ⚙️ Setup Instructions
 
-### 1. Prerequisites
-
-- Node.js 18+
-- PostgreSQL database (local or [Neon.tech](https://neon.tech) free tier)
-- Cloudinary account (free tier works)
-
-### 2. Clone & Install
+### 1. Clone Repo
 
 ```bash
+git clone https://github.com/your-username/real-estate-crm.git
 cd real-estate-crm
+```
+
+### 2. Install
+
+```bash
 npm install
 ```
 
-### 3. Configure Environment
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your values:
+### 3. Environment Variables
 
 ```env
-DATABASE_URL="postgresql://USER:PASS@HOST:5432/real_estate_crm"
-JWT_SECRET="your-secret-key-min-32-chars"
-CLOUDINARY_CLOUD_NAME="your-cloud"
-CLOUDINARY_API_KEY="your-api-key"
-CLOUDINARY_API_SECRET="your-api-secret"
+DATABASE_URL=your_neon_db_url
+JWT_SECRET=your_secret
+CLOUDINARY_CLOUD_NAME=your_cloud
+CLOUDINARY_API_KEY=your_key
+CLOUDINARY_API_SECRET=your_secret
 ```
 
 ### 4. Database Setup
 
 ```bash
-# Push schema to database
+npx prisma generate
 npx prisma db push
-
-# Seed with demo data
 npm run db:seed
 ```
 
-### 5. Run Development Server
+### 5. Run App
 
 ```bash
 npm run dev
 ```
 
-Visit **http://localhost:3000**
-
 ---
 
-## 🔑 Demo Credentials
+## 📡 API Overview
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@realcrm.com | Admin@1234 |
-| Manager | manager@realcrm.com | Agent@1234 |
-| Agent 1 | agent@realcrm.com | Agent@1234 |
-| Agent 2 | agent2@realcrm.com | Agent@1234 |
+### Auth
 
----
-
-## 📡 API Reference
-
-### Authentication
-
-```bash
-# Register (first user auto-promoted to Admin)
-POST /api/auth/register
-{ "name": "John", "email": "john@example.com", "password": "Secret@123" }
-
-# Login
-POST /api/auth/login
-{ "email": "admin@realcrm.com", "password": "Admin@1234" }
-
-# Refresh Token
-POST /api/auth/refresh
-
-# Logout
-DELETE /api/auth/refresh
-```
+* `POST /api/auth/register`
+* `POST /api/auth/login`
 
 ### Leads
 
-```bash
-# List (with filters)
-GET /api/leads?status=NEW&source=REFERRAL&page=1&limit=20&search=john
-
-# Create
-POST /api/leads
-{ "name": "Jane Doe", "phone": "+91 98765 43210", "budget": 5000000, "source": "WEBSITE" }
-
-# Update status
-PATCH /api/leads/:id
-{ "status": "QUALIFIED", "assignedToId": "user-id" }
-
-# AI score a lead
-POST /api/ai/score-lead
-{ "leadId": "lead-id" }
-```
+* `GET /api/leads`
+* `POST /api/leads`
 
 ### Properties
 
-```bash
-# List with filters
-GET /api/properties?type=RESIDENTIAL&city=Mumbai&minPrice=5000000&maxPrice=30000000
-
-# Create
-POST /api/properties
-{
-  "title": "3BHK Apartment",
-  "type": "RESIDENTIAL",
-  "address": "MG Road",
-  "city": "Bangalore",
-  "state": "Karnataka",
-  "price": 15000000
-}
-```
+* `GET /api/properties`
+* `POST /api/properties`
 
 ### Deals
 
-```bash
-# Create deal
-POST /api/deals
-{ "title": "Deal Title", "clientId": "cuid", "propertyId": "cuid", "amount": 15000000, "commissionRate": 2 }
-
-# Move stage (drag-drop calls this)
-PATCH /api/deals/:id
-{ "stage": "NEGOTIATION" }
-```
-
-### Webhooks (External Lead Capture)
-
-```bash
-# Accept lead from property portal
-POST /api/webhooks/lead
-X-Webhook-Signature: sha256=HMAC_SIGNATURE
-{ "name": "Lead Name", "phone": "+91...", "email": "...", "budget": 5000000 }
-```
+* `POST /api/deals`
+* `PATCH /api/deals/:id`
 
 ---
 
-## 🗄️ Database Schema Overview
+## 🗄️ Database Models
 
-| Model | Key Fields |
-|---|---|
-| `User` | name, email, password (bcrypt), role (ADMIN\|MANAGER\|AGENT) |
-| `Lead` | name, phone, email, budget, source, status, score, assignedToId |
-| `Property` | title, type, address, price, size, bedrooms, lat/lng, images |
-| `Client` | name, type (BUYER\|SELLER\|BOTH), preferences, agentId |
-| `Deal` | title, stage, amount, commissionRate, commissionAmount |
-| `Activity` | type (CALL\|EMAIL\|VISIT\|NOTE...), polymorphic entity links |
-| `FollowUp` | title, scheduledAt, leadId\|clientId |
-| `Document` | url, publicId (Cloudinary), dealId\|propertyId\|clientId |
-| `Notification` | type, message, isRead, userId |
-| `Task` | title, status, priority, dueDate, assignedToId |
-| `AuditLog` | action, entity, oldData, newData, userId |
-| `RefreshToken` | token, userId, expiresAt |
+* User, Lead, Property, Client
+* Deal, Activity, FollowUp
+* Notification, Task, Document
+* AuditLog, RefreshToken
 
 ---
 
-## ☁️ Cloudinary Setup
+## 🔒 Security
 
-1. Create free account at [cloudinary.com](https://cloudinary.com)
-2. Get your `Cloud Name`, `API Key`, `API Secret`
-3. Add to `.env`
-
-Files are organized in folders:
-- `real-estate-crm/properties/` — Property images
-- `real-estate-crm/documents/` — Deal documents (PDF)
-- `real-estate-crm/avatars/` — User avatars
+* JWT Authentication (Access + Refresh Tokens)
+* HTTP-only cookies
+* Role-Based Access Control (RBAC)
+* Input validation using Zod
 
 ---
 
-## 🔒 RBAC Permissions
+## 🚀 Deployment
 
-| Action | Admin | Manager | Agent |
-|---|---|---|---|
-| View all leads | ✅ | ✅ | Own only |
-| Create/Delete leads | ✅ | ✅ | Create only |
-| Manage users | ✅ | View only | ❌ |
-| View all deals | ✅ | ✅ | Own only |
-| Delete properties | ✅ | ✅ | ❌ |
-| View reports | ✅ | ✅ | Own metrics |
+* Vercel (Frontend + API)
+* Neon DB (PostgreSQL)
+* Cloudinary (Media Storage)
 
 ---
 
-## 🚢 Deployment
+## 💡 Why This Project?
 
-### Vercel (Recommended)
+This project demonstrates:
 
-```bash
-# Push to GitHub, then connect to Vercel
-# Set environment variables in Vercel dashboard
-# Use Neon.tech for PostgreSQL (free)
-```
-
-### Docker
-
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json .
-RUN npm ci
-COPY . .
-RUN npx prisma generate
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-### Environment Variables for Production
-
-```
-DATABASE_URL=           # Neon/Supabase/PlanetScale connection string
-JWT_SECRET=             # 64-char random string
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-NEXTAUTH_URL=           # https://yourdomain.com
-```
+* Full-stack development (Frontend + Backend)
+* Scalable database design
+* Authentication & authorization
+* Real-world CRM workflows
+* API + webhook integrations
 
 ---
 
-## 📊 Technology Stack
+## 📌 Future Enhancements
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 14 App Router, React 19 |
-| Styling | Tailwind CSS v4 |
-| Backend | Next.js API Routes (Route Handlers) |
-| Database | PostgreSQL + Prisma ORM |
-| Auth | JWT (jose) with access + refresh tokens |
-| Storage | Cloudinary |
-| Charts | Recharts |
-| Forms | React Hook Form + Zod |
-| Notifications | react-hot-toast |
-| Icons | Lucide React |
+* AI-powered property recommendations
+* WhatsApp integration
+* Mobile app (React Native)
+* Advanced analytics dashboard
+
+---
+
+## 📄 License
+
+This project is built for learning and assignment purposes.
