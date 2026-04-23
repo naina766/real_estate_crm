@@ -6,7 +6,7 @@ A full-stack Real Estate CRM built with **Next.js 14**, **Prisma ORM**, **Postgr
 
 ## 🔗 Live Demo
 
-* 🌐 App:[ https://realestatecrm-sigma.vercel.app/login](https://realestatecrm-sigma.vercel.app/login)
+* 🌐 App:[ https://realestatecrmproject-7e0ca51qr-nainas-projects-4a4fd980.vercel.app/login](https://realestatecrmproject-7e0ca51qr-nainas-projects-4a4fd980.vercel.app/login)
 * 📦 GitHub: https://github.com/your-username/real-estate-crm
 
 ### 🔑 Demo Credentials
